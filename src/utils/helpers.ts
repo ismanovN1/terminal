@@ -9,12 +9,17 @@ console.log(expression);
 }
 
 
-export const Parser = (str:any,token:string|null=null) => {
+export const Parser =async (str:any,token:string|null=null) => {
     const data = str.split("separator@")
     try {
-        const d =  JSON.parse(base64.decode(data[1]))
+        const d = await JSON.parse(base64.decode(data[1]))
+        console.log(d.user);
+        console.log(token);
+        console.log(d.data );
+        
     if (d.user) {
         if(d.user === token){
+            
             return d.data
         }else {
             ToastAndroid.show('Пользователи не совпадают ',ToastAndroid.SHORT)

@@ -96,8 +96,8 @@ const styles = (sizeW: number, sizeH: number) => StyleSheet.create({
 
     },
     backButton: {
-        width: 6 * sizeW,
-        height: 12 * sizeH,
+        width: 80 * sizeW,
+        height: 15 * sizeH,
         marginTop: 68 * sizeH,
         marginBottom: 28 * sizeH,
     },

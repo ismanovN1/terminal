@@ -56,7 +56,7 @@ export const operation = () => (dispatch:AppDispatch, getState:any) => {
   api('terminal/operation', 'POST', token,body)
     .then((res:any) => {
       if(res.ok){
-        dispatch(setProducts(res.result.products.map((product:any)=>({...product,currentQuantity:null,loader:false}))))
+        dispatch(setProducts(res.result.products.map((product:any)=>({...product,loader:false}))))
         dispatch(setMainInfo({
           date: res.result.date,
           number: res.result.number,
@@ -76,13 +76,15 @@ export const operation = () => (dispatch:AppDispatch, getState:any) => {
 export const inventoryDone = () => (dispatch:AppDispatch, getState:any) => {
   dispatch(setLoader(true))
 
-  const {UIDInventory,  token} = getState().mainState;
+  const {UIDInventory,opertype,  token} = getState().mainState;
 
 
   const body = {
-    UIDInventory
+    UIDInventory,
+    type: opertype === 'inventoryAccepted'? 'accepted' : 'handover'
+
   }
-  api('deskrmk3/inventorydone', 'POST', token, body).then((res:any)=>{
+  api('inventory/close', 'POST', token, body).then((res:any)=>{
     if(res.ok){
       ToastAndroid.show('✔️', ToastAndroid.SHORT);
       dispatch(setProducts(null))
@@ -97,14 +99,15 @@ export const inventoryDone = () => (dispatch:AppDispatch, getState:any) => {
 }
 export const inventoryAdd = (UIDProduct:string,Difference:number) => (dispatch:AppDispatch, getState:any) => {
   dispatch(setLoaderProduct({UID:UIDProduct, loader:true}))
-  const {UIDInventory, token} = getState().mainState;
+  const {UIDInventory, opertype, token} = getState().mainState;
 
   const body = {
     UIDInventory,
     UIDProduct,
-    Difference
+    Difference,
+    type: opertype === 'inventoryAccepted'? 'accepted' : 'handover'
   }
-  api('deskrmk3/inventoryadd', 'POST', token, body).then((res:any)=>{
+  api('inventory/update', 'POST', token, body).then((res:any)=>{
     if(res.ok){
       dispatch(updateProducts(res.result))
       ToastAndroid.show('✔️', ToastAndroid.SHORT);

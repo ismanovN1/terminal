@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Image, TextInput, ImageBackground, StyleSheet, TouchableOpacity, Text, Dimensions } from 'react-native';
+import { View, Image, TextInput, ImageBackground, StyleSheet, TouchableOpacity, Text, Dimensions, ActivityIndicator } from 'react-native';
 import globalStyles from '../utils/globalStyles';
 import { useAppSelector, useAppDispatch } from '../utils/hooks'
 import Scaner from './Scaner';
@@ -14,9 +14,10 @@ const Menu: React.FC = () => {
     return <View style={[style.container]}>
         <Image source={require('../assets/logo.png')} style={style.logo} />
         <View style={style.buttonContainer}>
-            <TouchableOpacity onPress={()=>setScanning(true)} style={[gStyle.button, style.button]}>
+            <TouchableOpacity disabled={state.loader} onPress={()=>setScanning(true)} style={[gStyle.button, style.button]}>
                 <Text style={{ color: 'white', fontSize: 20 * state.size, fontWeight: "bold" }}>QR-Код</Text>
-                <Image source={require('../assets/Arrow.png')} style={style.Arrow} />
+                {state.loader?<ActivityIndicator size='small' color='blue' />:<Image source={require('../assets/Arrow.png')} style={style.Arrow} />}
+                
             </TouchableOpacity>
         </View>
     </View>

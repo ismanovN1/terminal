@@ -5,6 +5,6 @@ export interface prod{
     QuantityRecorded: number,
     ActualQuantity: string|number,
     Difference: number,
-    currentQuantity: number|null,
+    Updated: boolean,
     loader: boolean
 }

@@ -19,7 +19,9 @@ interface mainState {
     loader:boolean,
     additionalDetails: {name: string, value: string}[]|null,
     mainInfo:{date:string, number:string,structuralUnit:string}|null,
-    offset: number
+    offset: number,
+    withLinking:boolean,
+    fromLinkData:any
     
 }
 
@@ -33,6 +35,8 @@ const initialState: mainState = {
     pin:null,
     UIDInventory: null,
     opertype:'',
+    withLinking:false,
+    fromLinkData:null,
     products:null ,
     product: null,
     lastIndex:0,
@@ -48,6 +52,12 @@ export const counterSlice = createSlice({
     reducers: {
         setToken: (state, action: PayloadAction<string>) => {
             state.token = action.payload
+        },
+        setFromLinkData: (state, action: PayloadAction<object|null>) => {
+            state.fromLinkData = action.payload
+        },
+        setWithLinking: (state, action: PayloadAction<boolean>) => {
+            state.withLinking = action.payload
         },
         setOffset: (state, action: PayloadAction<number>) => {
             state.offset = action.payload
@@ -99,15 +109,15 @@ export const counterSlice = createSlice({
         setCurrentToken: (state, action: PayloadAction<string|null>) => {
                 state.currentToken = action.payload
         },
-        updateProducts: (state, action: PayloadAction<{UIDProduct: string,Nomenclature: string,QuantityRecorded: number, ActualQuantity: number,Difference:number}>)=>{
+        updateProducts: (state, action: PayloadAction<{UIDProduct: string,Nomenclature: string,Updated:boolean, QuantityRecorded: number, ActualQuantity: number,Difference:number}>)=>{
             
             state.products?.forEach((product:prod, index:number)=>{
                 if(product.UID === action.payload.UIDProduct){
                     const ActualQuantity:number = action.payload.ActualQuantity
                     const Difference: number = action.payload.Difference
-                    const currentQuantity:number = action.payload.ActualQuantity
+                    const Updated:boolean = action.payload.Updated
                     if(state.products)
-                    state.products[index] =  {...product, ActualQuantity, Difference,  currentQuantity,loader:false}
+                    state.products[index] =  {...product, ActualQuantity, Difference,  Updated,loader:false}
                 }
                 
             })
@@ -131,12 +141,12 @@ export const counterSlice = createSlice({
         setOpertype: (state, action: PayloadAction<string|null>) => {
                 state.opertype = action.payload
         },
-        setUIDInventory: (state, action: PayloadAction<string>) => {
+        setUIDInventory: (state, action: PayloadAction<string|null>) => {
                 state.UIDInventory = action.payload
         },
 
     },
 })
 
-export const { setToken,setIndex, setOffset, setLoader,setAdditionalDetails,setLoaderProduct, setMainInfo, updateProducts, setProducts, setPinCode,setCurrentToken, setUnlock, append, appendPlus, clear, reset, setOpertype, setProduct, setUIDInventory } = counterSlice.actions
+export const { setToken,setIndex, setOffset,setFromLinkData,setWithLinking ,setLoader,setAdditionalDetails,setLoaderProduct, setMainInfo, updateProducts, setProducts, setPinCode,setCurrentToken, setUnlock, append, appendPlus, clear, reset, setOpertype, setProduct, setUIDInventory } = counterSlice.actions
 export default counterSlice.reducer

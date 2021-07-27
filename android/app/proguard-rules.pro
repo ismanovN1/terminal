@@ -10,12 +10,12 @@
 # Add any project specific keep options here:
 # MeiZu Fingerprint
 
-// DEPRECATED in 4.0.0
+#// DEPRECATED in 4.0.0
 -keep class com.fingerprints.service.** { *; }
 -dontwarn com.fingerprints.service.**
 
 # Samsung Fingerprint
 
-// DEPRECATED in 4.0.0
+#// DEPRECATED in 4.0.0
 -keep class com.samsung.android.sdk.** { *; }
 -dontwarn com.samsung.android.sdk.**

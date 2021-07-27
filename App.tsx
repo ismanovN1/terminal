@@ -10,27 +10,20 @@ import { useAppDispatch, useAppSelector, useKeyboard } from './src/utils/hooks';
 import PinScreen from './src/Pages/PinScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Loader from './src/components/Loader';
-import { setCurrentToken, setPinCode, setUnlock } from './src/redux/mainSlice';
+import { setCurrentToken, setFromLinkData, setOpertype, setPinCode, setUIDInventory, setUnlock, setWithLinking } from './src/redux/mainSlice';
 import { operation } from './src/redux/mainThunk';
 import SplashScreen from 'react-native-splash-screen'
 import {Parser} from './src/utils/helpers'
 
 const App = () => {
-  const {token,unlock , currentToken,UIDInventory,products} = useAppSelector((state) => state.mainState)
+  const {token,unlock ,withLinking,fromLinkData, currentToken,UIDInventory,products} = useAppSelector((state) => state.mainState)
   const dispatch = useAppDispatch()
   const [page, setPage] = useState(<Loader/>)
 
   useEffect(() => {
     SplashScreen.hide();
-    Linking.getInitialURL().then(url => {
-      if(url){
-        const data = Parser(url, token)
-        if(data){
-            dispatch(setUIDInventory(data.UID))
-            dispatch(setOpertype(data.opertype))
-        }
-        
-      }
+    Linking.getInitialURL().then( (url) => {
+      url && Sub(url)
       
     });
     Linking.addEventListener('url', handleOpenURL);
@@ -65,14 +58,21 @@ const App = () => {
     getData();
     return ()=>{
       dispatch(setUnlock(false))
-      Linking.removeEventListener('url', handleUrl)
+      Linking.removeEventListener('url', handleOpenURL)
     }
   }, []);
 
   useEffect(() => {
     if(token && unlock){
       if(products && products.length > 0) setPage(<Main/>)
-      else setPage(<Menu/>)
+      else {
+        if (withLinking && fromLinkData && fromLinkData.UID) {
+          dispatch(setOpertype(fromLinkData.opertype? fromLinkData.opertype: ''))
+          dispatch(setUIDInventory(fromLinkData.UID))
+          dispatch(setWithLinking(false))
+          dispatch(setFromLinkData(null))
+        }
+        setPage(<Menu/>)}
     }else if(token){
       setPage(<PinScreen exit={()=>setPage(<Auth/>)} />)
     }
@@ -86,7 +86,26 @@ const App = () => {
   }, [UIDInventory]);
 
   const handleOpenURL = (event: any) => { // D
-    console.log(event.url);
+    console.log(event.url,'listener');
+    if (event.url) {
+      Sub(event.url)
+    }
+
+  } 
+  const Sub = async (url:any) => { // D
+    if(url){
+     try {
+      const data = await Parser(url, token)
+      if(data){
+          dispatch(setFromLinkData(data))
+          dispatch(setWithLinking(true))
+      }
+     } catch (error) {
+       console.log(error);
+       
+     }
+      
+    }
     
   } 
 

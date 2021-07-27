@@ -19,7 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { check } from '../redux/mainThunk';
 
 
-const PinScreen: React.FC = (props) => {
+const PinScreen: React.FC<any> = (props) => {
     const state = useAppSelector((state) => state.mainState)
     const dispatch = useAppDispatch()
     const style = useMemo(()=>styles(state.size, state.sizeHeight),[])
@@ -33,6 +33,7 @@ const PinScreen: React.FC = (props) => {
     const [ time, setTime ] = useState(10)
     const shakeAnimation =  useRef(new Animated.Value(0)).current
     useEffect( () => {
+        state.pin?.length === 5 && authCurrent()
         state.pin?.length === 5 ? setText('Bведите ПИН-код'): setText('Bведите новый PIN-код') 
          return ()=>FingerprintScanner.release();
     }, []);

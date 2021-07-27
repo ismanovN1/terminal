@@ -9,6 +9,7 @@ import {
     Image,
     StyleSheet,
     Text,
+    ToastAndroid,
     TouchableOpacity,
     View,
 } from 'react-native';
@@ -35,7 +36,7 @@ const Scaner: React.FC<any> = (props:any) => {
     }, [torch])
 
 
-
+// for animation scaner (red line)
     const animate = () => {
         animatedValue.setValue(0)
         Animated.timing(
@@ -55,9 +56,8 @@ const Scaner: React.FC<any> = (props:any) => {
         outputRange: [0, 360 * state.sizeHeight, 0]
     })
 
-    const onRead = (e:any) => {
-        console.log(e);
-        console.log(state.loader);
+    const onRead = async (e:any) => {
+
        if(!state.loader){
            
         if(state.products && state.products.length >0){
@@ -65,15 +65,21 @@ const Scaner: React.FC<any> = (props:any) => {
             if(product) {
                 dispatch(setProduct(product))
                 props.setScanning(false)
+            }else{
+                ToastAndroid.show(
+                    'Tовар не найден',
+                    ToastAndroid.SHORT,
+                  );
+                props.setScanning(false)
             }
         }else{
-            const data = Parser(e.data)
-        if(data)
-        {
-            
-            dispatch(setUIDInventory(data.UID))
-            dispatch(setOpertype(data.opertype))
-        }
+            const data = await Parser(e.data, state.token)
+            console.log(data)
+            if(data)
+            { 
+                dispatch(setOpertype(data.opertype))
+                dispatch(setUIDInventory(data.UID))
+            }
         }
        }
 

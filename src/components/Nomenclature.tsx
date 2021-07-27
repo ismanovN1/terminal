@@ -62,14 +62,13 @@ const styles = (sizeW: number, sizeH: number)=> StyleSheet.create({
 
     },
     backButton: {
-        width: 6 * sizeW,
-        height: 12 * sizeH,
+        width: 30 * sizeW,
+        height: 15 * sizeH,
     },
     headerText:{
         fontWeight:'bold',
-        marginLeft:20*sizeW,
         fontSize:25*sizeW,
-        width: Dimensions.get('window').width - 90*sizeW,
+        width: Dimensions.get('window').width - 100*sizeW,
         textAlign:'center'
     },
     mainInfoContainer:{

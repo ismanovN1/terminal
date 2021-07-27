@@ -23,7 +23,7 @@ const Products: React.FC<any> = (props)=>{
             
         }
     }, [state.offset]);
-    const keyExtractor = (item:prod, index:number)=>index+ String(item.UID)+String(item.currentQuantity)
+    const keyExtractor = (item:prod, index:number)=>index+ String(item.UID)+String(item.Updated)
     const renderItem = useCallback(({ item, index } )=>{
         return <Product item={item} index={index}/>
     }, [])
@@ -77,7 +77,7 @@ const Product = React.memo((props:{item:prod, index: number})=>{
                 <Text style={style.amountFact}>{item.ActualQuantity}</Text>
             </View>
         </View>
-            <View style={[style.indicator,item.Difference === 0? style.green: style.red ]}><Text style={style.check}>{item.loader? <ActivityIndicator size='small' color='white' /> : item.currentQuantity  ?'✓':''}</Text></View>
+            <View style={[style.indicator,item.Difference === 0? style.green: style.red ]}><Text style={style.check}>{item.loader? <ActivityIndicator size='small' color='white' /> : item.Updated  ?'✓':''}</Text></View>
 
     </TouchableOpacity>
 })
@@ -99,12 +99,11 @@ const styles = (sizeW: number, sizeH: number)=> StyleSheet.create({
 
     },
     backButton: {
-        width: 6 * sizeW,
+        width: 30 * sizeW,
         height: 12 * sizeH,
     },
     headerText:{
         fontWeight:'bold',
-        marginLeft:20*sizeW,
         fontSize:25*sizeW
     },
     searchContainer:{
