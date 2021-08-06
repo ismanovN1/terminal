@@ -4,6 +4,7 @@ import {
     Alert,
     Animated,
     AppRegistry,
+    BackHandler,
     Dimensions,
     Easing,
     Image,
@@ -23,13 +24,21 @@ const Scaner: React.FC<any> = (props:any) => {
     const state = useAppSelector((state) => state.mainState)
 
     const [torch, setTorch] = useState(false);
+    const [wait, setWait] = useState(false);
     const dispatch = useAppDispatch()
     const styles = style(state.size, state.sizeHeight)
     const animatedValue = new Animated.Value(0)
+    const barType = !(state.products && state.products.length >0) ? RNCamera.Constants.GoogleVisionBarcodeDetection.BarcodeType.QR_CODE : RNCamera.Constants.GoogleVisionBarcodeDetection.BarcodeType.EAN_13
 
 
     React.useEffect(() => {
         animate()
+        const backHandler = BackHandler.addEventListener(
+            "hardwareBackPress",
+            goBack
+          );
+      
+          return () => backHandler.remove();
     }, [])
     React.useEffect(() => {
         animate()
@@ -56,34 +65,52 @@ const Scaner: React.FC<any> = (props:any) => {
         outputRange: [0, 360 * state.sizeHeight, 0]
     })
 
-    const onRead = async (e:any) => {
+    const onRead = async (scd) => {
+        const {barcodes} = scd
+        if(barcodes.length > 0){
+            setWait(true)
+            let e = barcodes[0]
 
-       if(!state.loader){
+            if(!state.loader){
            
-        if(state.products && state.products.length >0){
-            const product = state.products.find((item:prod)=>String(item.Barcode) === String(e.data))
-            if(product) {
-                dispatch(setProduct(product))
-                props.setScanning(false)
-            }else{
-                ToastAndroid.show(
-                    'Tовар не найден',
-                    ToastAndroid.SHORT,
-                  );
-                props.setScanning(false)
-            }
-        }else{
-            const data = await Parser(e.data, state.token)
-            console.log(data)
-            if(data)
-            { 
-                dispatch(setOpertype(data.opertype))
-                dispatch(setUIDInventory(data.UID))
-            }
+                if(state.products && state.products.length >0){
+                    const product = state.products.find((item:prod)=>String(item.barcode).includes(String(e.data)) && e.data.length >11 )
+                    console.log(scd)
+                    if(product) {
+                        dispatch(setProduct(product))
+                        props.setScanning(false)
+                    }else{
+                        ToastAndroid.show(
+                            'Tовар не найден',
+                            ToastAndroid.SHORT,
+                          );
+                          console.log(e.data);
+                          
+                        //props.setScanning(false)
+                    }
+                    
+                }else{
+                    const data = await Parser(e.data, state.token, state.isBoss)
+                    console.log(data)
+                    if(data)
+                    { 
+                        dispatch(setOpertype(data.opertype))
+                        dispatch(setUIDInventory(data.UID))
+                    }
+                }
+               }
+               setWait(false)
         }
-       }
-
     };
+
+    const goBack = ()=>{
+if(!(state.products && state.products.length >0)){
+    dispatch(setUIDInventory(null))
+    dispatch(setOpertype(null))
+}
+        props.setScanning(false)
+        return true
+    }
     return (
         <View style={styles.container}>
             <RNCamera
@@ -99,9 +126,12 @@ const Scaner: React.FC<any> = (props:any) => {
                     buttonPositive: 'Ok',
                     buttonNegative: 'Cancel',
                 }}
-                type={RNCamera.Constants.Type.back}
-                onBarCodeRead={onRead}
+                // onBarCodeRead={onRead}
+                //googleVisionBarcodeType={barType} 
+                //googleVisionBarcodeType={ RNCamera.Constants.GoogleVisionBarcodeDetection.BarcodeType.EAN_13 } 
+                onGoogleVisionBarcodesDetected={wait && state.loader ? ()=>{} : onRead}
             />
+            
             <View style={styles.cloth} />
             <View style={styles.line} >
                 <Animated.View                 // Special animatable View
@@ -111,10 +141,7 @@ const Scaner: React.FC<any> = (props:any) => {
                 style={styles.cancel}
             >
             </TouchableOpacity> */}
-            <TouchableOpacity onPress={()=>{
-                dispatch(setUIDInventory(null))
-                dispatch(setOpertype(null))
-                props.setScanning(false)}} style={styles.back} ><Image style={styles.logo}  source={require('../assets/logo.png')} /></TouchableOpacity>
+            <TouchableOpacity onPress={goBack} style={styles.back} ><Image style={styles.logo}  source={require('../assets/logo.png')} /></TouchableOpacity>
             <TouchableOpacity
                 style={styles.torch}
                 onPress={() => setTorch((prev) => !prev)}>

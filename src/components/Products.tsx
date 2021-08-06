@@ -1,21 +1,35 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, View,TouchableOpacity, Image,TextInput, Text, FlatList, ActivityIndicator } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { StyleSheet, View,TouchableOpacity, Image,TextInput, Text, FlatList, ActivityIndicator, BackHandler } from 'react-native';
 import Scaner from '../Pages/Scaner';
 import { setIndex, setProduct } from '../redux/mainSlice';
+import { operation } from '../redux/mainThunk';
 import globalStyles from '../utils/globalStyles';
+import { ParseDate, sortData } from '../utils/helpers';
 import { useAppDispatch, useAppSelector } from '../utils/hooks';
 import { prod } from '../utils/interfaces';
 
 
-const Products: React.FC<any> = (props)=>{
+const Products: React.FC<any> = (props:any)=>{
     const state = useAppSelector((state) => state.mainState)
     const [search , setSearch] = useState('')
     const [scaner , setScaner] = useState(false)
-    const data = state.products ? state.products.filter((product:prod) => String(product.Barcode).includes(search)|| product.Nomenclature.toLowerCase().includes(search.toLowerCase()) ):null
+    const [refreshing , setRefreshing] = useState(false)
+    const [loader , setLoader] = useState(false)
+    const data =state.products ? state.products.filter((product:prod) => String(product.barcode).includes(search)|| product.nomenclature.toLowerCase().includes(search.toLowerCase()) ):null
     const dispatch = useAppDispatch()
     const style = styles(state.size, state.sizeHeight)
     const gStyle = globalStyles(state.size)
     const flatRef = useRef<FlatList | null>(null);
+
+    useEffect(()=>{
+        const backHandler = BackHandler.addEventListener(
+            "hardwareBackPress",
+            props.back
+          );
+      
+          return () => backHandler.remove();
+    },[])
+
 
     useEffect(() => {
         if (flatRef?.current) {
@@ -23,14 +37,20 @@ const Products: React.FC<any> = (props)=>{
             
         }
     }, [state.offset]);
-    const keyExtractor = (item:prod, index:number)=>index+ String(item.UID)+String(item.Updated)
+    const keyExtractor = (item:prod, index:number)=>index+ String(item.UIDProduct)+String(item.updated)
     const renderItem = useCallback(({ item, index } )=>{
         return <Product item={item} index={index}/>
     }, [])
 
     if(scaner) return <Scaner setScanning={setScaner} />
     return <View style={style.container}>
-        <View style={style.header}><TouchableOpacity onPress={props.back} style={style.backButton} ><Image source={require('../assets/backButton.png')} /></TouchableOpacity><Text style={style.headerText}>Наменклатура</Text></View>
+        <View style={style.header}>
+            <TouchableOpacity onPress={props.back} style={style.backButton} >
+                <Image source={require('../assets/backButton.png')} />
+        </TouchableOpacity>
+        <Text style={style.headerText}>Наменклатура</Text>
+           
+        </View>
         <View style={style.searchContainer}>
             <View style={style.inputSearchContainer}>
                 <Image style={style.searchIcon} source={require('../assets/search.png')} />
@@ -46,24 +66,39 @@ const Products: React.FC<any> = (props)=>{
         </View>
         {data?
         <FlatList
+        refreshing={refreshing}
+        onRefresh={() =>{
+            setRefreshing(true)
+            dispatch(operation(()=>setRefreshing(false)))}}
         ref={flatRef}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
-        data={data}
+        data={sortData(data)}
         showsVerticalScrollIndicator={false}
         />:<View/>}
         
-      
+        <TouchableOpacity
+        onPress={()=>{
+            setLoader(true)
+            dispatch(operation(()=>setLoader(false)))
+        }}
+        disabled={loader}
+            style={style.refreshContainer}
+            >
+                {loader? <ActivityIndicator size='small' color='green'/>:<View style={style.refreshIcon}><Image style={{width:15*state.size, height:15*state.size}} resizeMode='stretch' source={require('../assets/refresh.png')} /></View>}
+                {state.refreshDate && <Text style={style.refreshDate}>{ParseDate(state.refreshDate)}</Text>}
+            </TouchableOpacity>
     </View>
 }
 
-export default React.memo((props)=><Products {...props}/>);
+export default React.memo((props:any)=><Products {...props}/>);
 
 const Product = React.memo((props:{item:prod, index: number})=>{
     const item:prod = props.item
 
     const state = useAppSelector((state) => state.mainState)
     const dispatch = useAppDispatch()
+    const [loading, setLoading] = useState(true)
     const style = styles(state.size, state.sizeHeight)
     return <TouchableOpacity  onPress={()=>{
         dispatch(setProduct(item))
@@ -71,16 +106,45 @@ const Product = React.memo((props:{item:prod, index: number})=>{
         
     }} style={style.productContainer}>
         <View style={style.productInnerContainer}>
-            <Text style={style.productName}>{item.Nomenclature}</Text>
+            <View style={style.imageContainer}>
+            <Image source={
+{
+    uri:`https://apex.lavina.uz/apex/hs/common/images?uid=${item.UIDProduct}`,
+    cache: 'force-cache',
+    headers: {
+      Authorization:` Basic ${state.token}`,
+    },
+  }
+            } style={style.image}
+                                   resizeMode={"contain"} onLoadStart={() => setLoading(true)}
+                                   onLoadEnd={() => {
+                                       setLoading(false)
+    }}/>
+    {loading && <LoadingView/>}
+            </View>
+            <View style={style.infoContainer}>
+            <Text style={style.productName} numberOfLines={1}>{item.nomenclature}</Text>
             <View style={style.numContainer}>
-                <Text style={style.amount}>{item.QuantityRecorded}</Text>
-                <Text style={style.amountFact}>{item.ActualQuantity}</Text>
+                <Text style={style.amount}>{item.amount}  {item.updated&&<Text style={style.amountFact}>{"/"+item.actualAmount}</Text>}</Text>
+               
+            </View>
             </View>
         </View>
-            <View style={[style.indicator,item.Difference === 0? style.green: style.red ]}><Text style={style.check}>{item.loader? <ActivityIndicator size='small' color='white' /> : item.Updated  ?'✓':''}</Text></View>
+            <View style={[style.indicator,item.Difference === 0? style.green: style.red ]}><Text style={style.check}>{item.loader? <ActivityIndicator size='small' color='white' /> : item.updated  ?'✓':''}</Text></View>
 
     </TouchableOpacity>
 })
+
+const  LoadingView = ()=> {
+    
+        return (
+            <View style={styles(0,0).loader}>
+                <ActivityIndicator size="small" color="#FFD700"/>
+            </View>
+        );
+    
+}
+
 
 const styles = (sizeW: number, sizeH: number)=> StyleSheet.create({
     container:{
@@ -96,7 +160,6 @@ const styles = (sizeW: number, sizeH: number)=> StyleSheet.create({
         height:43*sizeH,
         flexDirection:'row',
         alignItems:'center',
-
     },
     backButton: {
         width: 30 * sizeW,
@@ -105,6 +168,24 @@ const styles = (sizeW: number, sizeH: number)=> StyleSheet.create({
     headerText:{
         fontWeight:'bold',
         fontSize:25*sizeW
+    },
+    refreshContainer:{
+        position:'absolute',
+        right:10*sizeW,
+        top:35*sizeW,
+        width:100*sizeW,
+        height:43*sizeH,
+        justifyContent:'space-around',
+        alignItems:'center'
+    },
+    refreshIcon:{
+        width:15*sizeW,
+        height:15*sizeW,
+        justifyContent:'center',
+        alignItems:'center'
+    },
+    refreshDate:{
+        fontSize:10*sizeW
     },
     searchContainer:{
         width:'100%',
@@ -169,19 +250,18 @@ const styles = (sizeW: number, sizeH: number)=> StyleSheet.create({
         alignItems:'center',
         justifyContent:'space-between',
         paddingRight:20*sizeW,
-        paddingLeft:20*sizeW,
+        paddingLeft:5*sizeW,
 
     },
     productName:{
-        fontSize: 14*sizeW,
+        fontSize: 11*sizeW,
         fontWeight:'bold',
-        maxWidth:170*sizeW
+        maxWidth:170*sizeW,
+        overflow:'hidden'
     },
     numContainer:{
         maxWidth:100*sizeW,
-        height: 44*sizeH,
-        justifyContent:'space-between',
-        alignItems:'flex-end'
+        alignItems:'flex-start'
     },
     amount:{
         fontSize: 14*sizeW,
@@ -210,6 +290,36 @@ const styles = (sizeW: number, sizeH: number)=> StyleSheet.create({
     check:{
         fontSize:10*sizeW,
         color:'white'
+    },
+    imageContainer:{
+        width:50*sizeW,
+        height:"100%",
+        alignItems:'center',
+        justifyContent:'center',
+        marginRight:15*sizeW
+    },
+    image:{
+        width:40*sizeW,
+        height:40*sizeW,
+        resizeMode:'contain'
+    },
+    infoContainer:{
+        width:250*sizeW,
+        justifyContent:'space-between',
+        height:70*sizeH,
+        paddingTop:10*sizeH,
+        paddingBottom:10*sizeH,
+    },
+    loader:{
+        position: "absolute",
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        opacity: 0.7,
+        justifyContent: "center",
+        alignItems: "center",
     }
+    
 
 })

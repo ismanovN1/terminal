@@ -34,7 +34,7 @@ const PinScreen: React.FC<any> = (props) => {
     const shakeAnimation =  useRef(new Animated.Value(0)).current
     useEffect( () => {
         state.pin?.length === 5 && authCurrent()
-        state.pin?.length === 5 ? setText('Bведите ПИН-код'): setText('Bведите новый PIN-код') 
+        state.pin?.length ? setText('Bведите ПИН-код'): setText('Bведите новый PIN-код') 
          return ()=>FingerprintScanner.release();
     }, []);
     
@@ -120,8 +120,8 @@ const PinScreen: React.FC<any> = (props) => {
     const onType = (symbol: string) => {
         if(pass.length <5 && !lock)
         {
-            setPass(prev=>prev+symbol)
-            setStar(prev=>prev+'*')
+            setPass((prev:string)=>prev+symbol)
+            setStar((prev:string)=>prev+'*')
         }
     }
 

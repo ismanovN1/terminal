@@ -16,7 +16,7 @@ import SplashScreen from 'react-native-splash-screen'
 import {Parser} from './src/utils/helpers'
 
 const App = () => {
-  const {token,unlock ,withLinking,fromLinkData, currentToken,UIDInventory,products} = useAppSelector((state) => state.mainState)
+  const {token,unlock , isBoss, withLinking,fromLinkData, currentToken,UIDInventory,products} = useAppSelector((state) => state.mainState)
   const dispatch = useAppDispatch()
   const [page, setPage] = useState(<Loader/>)
 
@@ -95,7 +95,7 @@ const App = () => {
   const Sub = async (url:any) => { // D
     if(url){
      try {
-      const data = await Parser(url, token)
+      const data = await Parser(url, token, isBoss)
       if(data){
           dispatch(setFromLinkData(data))
           dispatch(setWithLinking(true))

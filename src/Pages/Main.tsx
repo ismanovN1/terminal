@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Image, TextInput, ImageBackground, StyleSheet, TouchableOpacity, Text, Dimensions, ScrollView } from 'react-native';
+import { View, Image, TextInput, ImageBackground, StyleSheet, TouchableOpacity, Text, Dimensions, ScrollView, BackHandler } from 'react-native';
 import globalStyles from '../utils/globalStyles';
 import { useAppSelector, useAppDispatch } from '../utils/hooks'
 import Nomenclature from '../components/Nomenclature'
@@ -11,6 +11,7 @@ const Main: React.FC<any> = (props) => {
     const scrollRef = useRef<ScrollView | null>(null);
     const width = Dimensions.get('window').width
     const height = Dimensions.get('window').height
+
 
     const ScrollEnd = useCallback((e) => {
         if (scrollRef?.current) {
@@ -28,6 +29,7 @@ const Main: React.FC<any> = (props) => {
             }
 
         }
+       
     },[])
 
     const ProductsUC = useCallback((props)=><Products {...props}/>, [])
@@ -53,6 +55,7 @@ const Main: React.FC<any> = (props) => {
                     animated: true,
                 })
             }
+            return true
         }}/>
         </View>
 

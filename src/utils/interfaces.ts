@@ -1,10 +1,10 @@
 export interface prod{
-    UID: string,
-    Barcode: number|string,
-    Nomenclature: string,
-    QuantityRecorded: number,
-    ActualQuantity: string|number,
+    UIDProduct: string,
+    barcode: number|string,
+    nomenclature: string,
+    amount: number,
+    actualAmount: string|number,
     Difference: number,
-    Updated: boolean,
+    updated: boolean,
     loader: boolean
 }

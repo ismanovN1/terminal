@@ -5251,8 +5251,8 @@ react-native-base64@^0.2.1:
   integrity sha512-eHgt/MA8y5ZF0aHfZ1aTPcIkDWxza9AaEk4GcpIX+ZYfZ04RcaNahO+527KR7J44/mD3efYfM23O2C1N44ByWA==
 
 "react-native-camera@git+https://git@github.com/react-native-community/react-native-camera.git":
-  version "3.44.3"
-  resolved "git+https://git@github.com/react-native-community/react-native-camera.git#dbe42722b2af8bb1cfb65ad495af96e72cda6fb4"
+  version "4.0.0"
+  resolved "git+https://git@github.com/react-native-community/react-native-camera.git#215b5643ba7f8c5e291958a51f92be310589a2f1"
   dependencies:
     prop-types "^15.6.2"
 
